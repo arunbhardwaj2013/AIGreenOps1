@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DWP AI Carbon Intelligence</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --navy:#0B1420;--navy2:#101C2B;--card:#132131;--br:#1E3247;
+  --t1:#E8F0F5;--t2:#8FA6BB;--t3:#5C7288;
+  --green:#2E9E6B;--green2:#3FBF85;--greenGlow:rgba(63,191,133,.14);
+  --amber:#D98A2B;--red:#D0453B;--blue:#2E7FB8;--teal:#25998C;
+  --measured:#2E9E6B;--benchmarked:#2E7FB8;--estimated:#D98A2B;
+}
+body{background:var(--navy);color:var(--t1);font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,sans-serif;display:flex;height:100vh;overflow:hidden}
+
+/* sidebar */
+.sb{width:206px;background:var(--navy2);border-right:1px solid var(--br);display:flex;flex-direction:column;flex-shrink:0}
+.sb-brand{display:flex;align-items:center;gap:10px;padding:15px 14px 13px;border-bottom:1px solid var(--br)}
+.sb-logo{width:30px;height:30px;border-radius:7px;background:linear-gradient(135deg,var(--green),var(--teal));display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;flex-shrink:0}
+.sb-name{font-size:12px;font-weight:600;line-height:1.25}
+.sb-sub{font-size:9.5px;color:var(--t3);line-height:1.3;margin-top:2px}
+.sb-sec{font-size:9.5px;color:var(--t3);letter-spacing:1.1px;padding:15px 14px 6px;font-weight:600}
+.nav{display:flex;align-items:center;gap:10px;padding:9px 14px;cursor:pointer;font-size:13px;color:var(--t2);border-left:2px solid transparent}
+.nav:hover{background:rgba(63,191,133,.05);color:var(--t1)}
+.nav.on{background:rgba(63,191,133,.09);border-left-color:var(--green2);color:var(--t1)}
+.nav .ic{width:15px;text-align:center;opacity:.75;font-size:12px}
+.nav .badge{margin-left:auto;font-size:9.5px;padding:1px 6px;border-radius:9px;background:rgba(208,69,59,.18);color:#E9736A}
+.nav .badge.g{background:rgba(63,191,133,.16);color:var(--green2)}
+.sb-foot{margin-top:auto;border-top:1px solid var(--br);padding:11px 14px;display:flex;align-items:center;gap:9px}
+.av{width:27px;height:27px;border-radius:50%;background:var(--br);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600}
+
+/* main */
+.main{flex:1;overflow-y:auto}
+.top{display:flex;align-items:center;gap:9px;padding:12px 22px;border-bottom:1px solid var(--br);font-size:12.5px;color:var(--t2);position:sticky;top:0;background:var(--navy);z-index:5}
+.crumb{color:var(--t2)}.crumb b{color:var(--t1);font-weight:600}
+.chip{font-size:11px;padding:2px 9px;border-radius:11px;background:var(--card);border:1px solid var(--br);color:var(--t2)}
+.chip.ok{background:rgba(63,191,133,.1);border-color:rgba(63,191,133,.3);color:var(--green2)}
+.chip.warn{background:rgba(217,138,43,.1);border-color:rgba(217,138,43,.32);color:var(--amber)}
+.wrap{padding:20px 22px 40px}
+
+/* kpis */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin-bottom:16px}
+.kpi{background:var(--card);border:1px solid var(--br);border-radius:9px;padding:14px 16px;cursor:pointer;transition:.15s}
+.kpi:hover{border-color:rgba(63,191,133,.45);transform:translateY(-1px)}
+.kpi .lab{font-size:9.5px;color:var(--t3);letter-spacing:.9px;font-weight:600;margin-bottom:7px}
+.kpi .val{font-size:25px;font-weight:700;letter-spacing:-.5px}
+.kpi .val small{font-size:14px;font-weight:600;color:var(--t2);margin-left:2px}
+.kpi .sub{font-size:11px;color:var(--t2);margin-top:5px}
+.kpi .sub.up{color:var(--red)}.kpi .sub.dn{color:var(--green2)}
+
+/* panels */
+.grid2{display:grid;grid-template-columns:1.35fr 1fr;gap:14px;margin-bottom:14px}
+.grid2b{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.panel{background:var(--card);border:1px solid var(--br);border-radius:9px;padding:15px 17px}
+.ph{display:flex;align-items:center;justify-content:space-between;margin-bottom:13px}
+.pt{font-size:10px;color:var(--t2);letter-spacing:1px;font-weight:600}
+.pt .hint{color:var(--t3);letter-spacing:0;font-weight:400;text-transform:none}
+.plink{font-size:10.5px;color:var(--green2);cursor:pointer}
+
+/* bar chart */
+.bars{display:flex;align-items:flex-end;gap:3px;height:96px;padding-top:6px}
+.bc{flex:1;border-radius:2px 2px 0 0;cursor:pointer;transition:.15s}
+.bc:hover{filter:brightness(1.25)}
+.axis{display:flex;justify-content:space-between;font-size:10px;color:var(--t3);margin-top:7px}
+
+/* model rows */
+.mrow{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(30,50,71,.5);cursor:pointer}
+.mrow:last-child{border-bottom:none}
+.mrow:hover{background:rgba(63,191,133,.04)}
+.dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.mname{font-size:12.5px;flex:1}
+.mtok{font-size:10.5px;color:var(--t3);width:62px;text-align:right}
+.mval{font-size:12.5px;font-weight:600;width:74px;text-align:right}
+.mpct{font-size:10.5px;color:var(--t2);width:40px;text-align:right}
+.mbar{height:3px;background:var(--br);border-radius:2px;margin-top:5px;overflow:hidden}
+.mbar i{display:block;height:100%;border-radius:2px}
+
+/* confidence tags */
+.tag{font-size:8.5px;font-weight:700;letter-spacing:.5px;padding:2px 6px;border-radius:4px;text-transform:uppercase}
+.tag.m{background:rgba(46,158,107,.16);color:var(--green2)}
+.tag.b{background:rgba(46,127,184,.16);color:#5FA8DA}
+.tag.e{background:rgba(217,138,43,.16);color:var(--amber)}
+
+/* table */
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{text-align:left;font-size:9.5px;color:var(--t3);letter-spacing:.8px;font-weight:600;padding:0 0 9px;border-bottom:1px solid var(--br)}
+th.r,td.r{text-align:right}
+td{padding:9px 0;border-bottom:1px solid rgba(30,50,71,.45)}
+tr:last-child td{border-bottom:none}
+tbody tr{cursor:pointer}
+tbody tr:hover{background:rgba(63,191,133,.04)}
+.pill{font-size:9.5px;padding:2px 8px;border-radius:9px;font-weight:600}
+.pill.ok{background:rgba(63,191,133,.14);color:var(--green2)}
+.pill.warn{background:rgba(217,138,43,.14);color:var(--amber)}
+.pill.bad{background:rgba(208,69,59,.16);color:#E9736A}
+
+/* insight boxes */
+.ins{margin-top:13px;padding:11px 13px;border-radius:7px;font-size:11.5px;line-height:1.5;color:var(--t2)}
+.ins.g{background:rgba(63,191,133,.07);border:1px solid rgba(63,191,133,.22)}
+.ins.a{background:rgba(217,138,43,.07);border:1px solid rgba(217,138,43,.25)}
+.ins.r{background:rgba(208,69,59,.07);border:1px solid rgba(208,69,59,.25)}
+.ins b{color:var(--t1)}
+
+/* equivalents */
+.eq{display:grid;grid-template-columns:repeat(3,1fr);gap:11px;margin-top:4px}
+.eqc{background:rgba(46,158,107,.06);border:1px solid rgba(46,158,107,.18);border-radius:7px;padding:12px;text-align:center}
+.eqc .n{font-size:19px;font-weight:700;color:var(--green2)}
+.eqc .l{font-size:10px;color:var(--t2);margin-top:4px;line-height:1.35}
+
+/* lever cards */
+.lev{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.lc{background:var(--card);border:1px solid var(--br);border-radius:9px;padding:14px 15px}
+.lc .lh{display:flex;align-items:center;gap:8px;margin-bottom:9px}
+.lc .li{width:24px;height:24px;border-radius:6px;background:rgba(63,191,133,.12);display:flex;align-items:center;justify-content:center;font-size:11px}
+.lc .lt{font-size:12px;font-weight:600}
+.lc .lv{font-size:21px;font-weight:700;color:var(--green2);margin:3px 0 5px}
+.lc .ld{font-size:10.5px;color:var(--t2);line-height:1.45}
+
+/* detail grid */
+.dg{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.dc{background:rgba(11,20,32,.5);border:1px solid var(--br);border-radius:7px;padding:11px 13px}
+.dc .dl{font-size:9.5px;color:var(--t3);letter-spacing:.7px;font-weight:600;margin-bottom:5px}
+.dc .dv{font-size:15px;font-weight:600}
+.dc .dv small{font-size:10.5px;color:var(--t2);font-weight:400;margin-left:4px}
+
+.back{font-size:11.5px;color:var(--t2);cursor:pointer;padding:4px 10px;border:1px solid var(--br);border-radius:6px;background:var(--card)}
+.back:hover{color:var(--t1);border-color:var(--green2)}
+h1{font-size:19px;font-weight:600;margin-bottom:3px}
+.h1sub{font-size:12px;color:var(--t2);margin-bottom:16px}
+.pg{display:none}.pg.on{display:block}
+
+.method{font-size:10px;color:var(--t3);line-height:1.6;margin-top:14px;padding-top:12px;border-top:1px solid var(--br)}
+.method b{color:var(--t2)}
+.method a{color:var(--blue);text-decoration:none}
+</style>
+</head>
+<body>
+
+<div class="sb">
+  <div class="sb-brand">
+    <div class="sb-logo">DWP</div>
+    <div><div class="sb-name">AI Carbon Intelligence</div><div class="sb-sub">GreenOps · Digital Workplace</div></div>
+  </div>
+  <div class="sb-sec">MAIN</div>
+  <div class="nav on" onclick="go('dash')"><span class="ic">▤</span>Dashboard</div>
+  <div class="nav" onclick="go('models')"><span class="ic">◈</span>Model Footprint</div>
+  <div class="nav" onclick="go('teams')"><span class="ic">⊞</span>Team Attribution</div>
+  <div class="nav" onclick="go('alerts')"><span class="ic">⚑</span>Alerts<span class="badge">2</span></div>
+  <div class="sb-sec">INSIGHTS</div>
+  <div class="nav" onclick="go('levers')"><span class="ic">⚡</span>Reduction Levers<span class="badge g">−85%</span></div>
+  <div class="nav" onclick="go('disclosure')"><span class="ic">▦</span>Disclosure</div>
+  <div class="sb-foot">
+    <div class="av">AB</div>
+    <div><div style="font-size:11.5px">Arun Bhardwaj</div><div style="font-size:9.5px;color:var(--t3)">Admin · Lenovo SSG</div></div>
+  </div>
+</div>
+
+<div class="main">
+<div class="top">
+  <span class="crumb" id="crumb"><b>Dashboard</b></span>
+  <span class="chip">June 2026</span>
+  <span class="chip warn">⚠ 2 hotspots</span>
+  <span class="chip ok">CSRD ready</span>
+  <span style="margin-left:auto;font-size:11px;color:var(--t3)">Grid: US avg · 352 gCO₂e/kWh</span>
+</div>
+
+<!-- ═══════════ DASHBOARD ═══════════ -->
+<div class="pg on" id="dash"><div class="wrap">
+  <div class="kpis">
+    <div class="kpi" onclick="go('models')">
+      <div class="lab">AI CARBON — MTD</div>
+      <div class="val">19.5<small>tCO₂e</small></div>
+      <div class="sub up">↑ 34% vs May · driven by agent adoption</div>
+    </div>
+    <div class="kpi" onclick="go('models')">
+      <div class="lab">ENERGY CONSUMED</div>
+      <div class="val">55.3<small>MWh</small></div>
+      <div class="sub">≈ 111 households for a month</div>
+    </div>
+    <div class="kpi" onclick="go('models')">
+      <div class="lab">WATER FOOTPRINT</div>
+      <div class="val">110.6<small>kL</small></div>
+      <div class="sub">datacentre + generation cooling</div>
+    </div>
+    <div class="kpi" onclick="go('levers')">
+      <div class="lab">REDUCTION POTENTIAL</div>
+      <div class="val" style="color:var(--green2)">16.6<small>tCO₂e</small></div>
+      <div class="sub dn">↓ 85% achievable · no model change</div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="panel">
+      <div class="ph">
+        <div class="pt">DAILY CARBON — 30 DAYS <span class="hint">· click bar for breakdown</span></div>
+        <div class="plink" onclick="go('models')">by model →</div>
+      </div>
+      <div class="bars" id="bars"></div>
+      <div class="axis"><span>May 9</span><span>May 16</span><span>May 23</span><span>May 30</span><span>Jun 8</span></div>
+      <div class="ins a">⚠ <b>Jun 3 spike:</b> a single reasoning-model batch job emitted <b>412 kgCO₂e</b> in 6 hours — 2.1× the daily average. Root cause: <b>o3-reasoning</b> on document synthesis.</div>
+    </div>
+
+    <div class="panel">
+      <div class="ph"><div class="pt">EMISSIONS BY MODEL <span class="hint">· click to drill down</span></div></div>
+      <div id="mlist"></div>
+      <div class="ins r">🔥 <b>o3-reasoning is 4.8% of tokens but 33.3% of emissions.</b> Reasoning models generate large volumes of internal tokens — invisible on the invoice, dominant in the footprint.</div>
+    </div>
+  </div>
+
+  <div class="grid2b">
+    <div class="panel">
+      <div class="ph"><div class="pt">CARBON EQUIVALENTS <span class="hint">· this month's AI footprint</span></div></div>
+      <div class="eq">
+        <div class="eqc"><div class="n">113,880</div><div class="l">km driven<br>(petrol car)</div></div>
+        <div class="eqc"><div class="n">893</div><div class="l">tree-years<br>to sequester</div></div>
+        <div class="eqc"><div class="n">1.62</div><div class="l">kgCO₂e per<br>employee / month</div></div>
+      </div>
+      <div class="ins g">Per-employee intensity is the metric CSOs report. At <b>1.62 kg/employee/month</b>, AI is now comparable to <b>business travel</b> for a desk-based workforce.</div>
+    </div>
+
+    <div class="panel">
+      <div class="ph"><div class="pt">DATA CONFIDENCE <span class="hint">· methodology transparency</span></div></div>
+      <table>
+        <tbody>
+          <tr><td><span class="tag m">Measured</span></td><td style="color:var(--t2);font-size:11.5px">Vendor-published per-query energy (Google, Mistral)</td><td class="r" style="font-weight:600">9.5%</td></tr>
+          <tr><td><span class="tag b">Benchmarked</span></td><td style="color:var(--t2);font-size:11.5px">Peer-reviewed inference studies (Epoch AI, arXiv)</td><td class="r" style="font-weight:600">39.1%</td></tr>
+          <tr><td><span class="tag e">Estimated</span></td><td style="color:var(--t2);font-size:11.5px">Extrapolated from model size & architecture</td><td class="r" style="font-weight:600">51.4%</td></tr>
+        </tbody>
+      </table>
+      <div class="ins a">Every figure carries a confidence label with traceable sources — so auditors can follow the methodology, not just the headline total. <b>51% of emissions rest on estimates</b> because OpenAI and Anthropic publish no per-query energy data.</div>
+    </div>
+  </div>
+
+  <div class="method">
+    <b>Methodology.</b> Energy per token derived from published inference benchmarks (Epoch AI; Jegham et al., <i>How Hungry is AI?</i>, arXiv:2505.09598). Carbon = energy × 352 gCO₂e/kWh (EPA eGRID2023, US national average). Water = energy × 2 mL/Wh (mid-range of the 1.8–12 L/kWh range spanning datacentre cooling and power generation). Confidence labelling follows the Measured / Benchmarked / Estimated pattern established by <a href="#">carbon-llm</a>. Embodied hardware emissions (≈30% uplift) excluded from headline figures; see Disclosure. Aligned to GHG Protocol Scope 2 (market & location-based) and Scope 3 Cat. 1 for API-based inference.
+  </div>
+</div></div>
+
+<!-- ═══════════ MODEL FOOTPRINT ═══════════ -->
+<div class="pg" id="models"><div class="wrap">
+  <div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:14px">
+    <div class="back" onclick="go('dash')">← Back</div>
+    <div><h1>Model Footprint</h1><div class="h1sub">Where the emissions actually come from — 24.0B tokens, June 2026</div></div>
+  </div>
+
+  <div class="panel" style="margin-bottom:14px">
+    <div class="ph"><div class="pt">PER-MODEL EMISSIONS <span class="hint">· sorted by carbon, not by tokens</span></div></div>
+    <table>
+      <thead><tr><th>MODEL</th><th>PROVIDER</th><th class="r">TOKENS</th><th class="r">ENERGY</th><th class="r">CO₂e</th><th class="r">% OF TOTAL</th><th class="r">gCO₂e/MTok</th><th style="text-align:center">CONFIDENCE</th></tr></thead>
+      <tbody id="mtable"></tbody>
+    </table>
+    <div class="ins r"><b>The intensity column is the story.</b> o3-reasoning emits <b>5,632 gCO₂e per million tokens</b> — 8.4× gpt-4o and 21× llama-3.3-70b. Reasoning models burn internal chain-of-thought tokens that never appear in the response, so cost and carbon diverge sharply from perceived usage.</div>
+  </div>
+
+  <div class="grid2b">
+    <div class="panel">
+      <div class="ph"><div class="pt">TOKENS vs EMISSIONS <span class="hint">· share comparison</span></div></div>
+      <div id="cmp"></div>
+      <div class="ins a">Token share and carbon share diverge most for <b>o3-reasoning</b> (4.8% → 33.3%) and invert for <b>gpt-4o-mini</b> (16.3% → 5.4%). Governing by token volume alone would target entirely the wrong workloads.</div>
+    </div>
+    <div class="panel">
+      <div class="ph"><div class="pt">GRID INTENSITY BY REGION <span class="hint">· same workload, different footprint</span></div></div>
+      <table>
+        <tbody>
+          <tr><td>🇸🇪 Sweden (Stockholm)</td><td class="r" style="color:var(--green2)">41 g/kWh</td><td class="r"><span class="pill ok">−88%</span></td></tr>
+          <tr><td>🇫🇷 France (Paris)</td><td class="r" style="color:var(--green2)">56 g/kWh</td><td class="r"><span class="pill ok">−84%</span></td></tr>
+          <tr><td>🇬🇧 UK (London)</td><td class="r">212 g/kWh</td><td class="r"><span class="pill ok">−40%</span></td></tr>
+          <tr><td>🇺🇸 US average <span style="color:var(--t3);font-size:10px">— current</span></td><td class="r">352 g/kWh</td><td class="r"><span class="pill warn">baseline</span></td></tr>
+          <tr><td>🇺🇸 Virginia (us-east-1)</td><td class="r" style="color:var(--amber)">379 g/kWh</td><td class="r"><span class="pill warn">+8%</span></td></tr>
+          <tr><td>🇮🇳 India (Mumbai)</td><td class="r" style="color:#E9736A">632 g/kWh</td><td class="r"><span class="pill bad">+80%</span></td></tr>
+        </tbody>
+      </table>
+      <div class="ins g">Routing inference to clean-grid regions is the single largest lever — <b>up to 8.2 tCO₂e/month</b> — with zero change to model, prompt, or user experience.</div>
+    </div>
+  </div>
+</div></div>
+
+<!-- ═══════════ TEAM ATTRIBUTION ═══════════ -->
+<div class="pg" id="teams"><div class="wrap">
+  <div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:14px">
+    <div class="back" onclick="go('dash')">← Back</div>
+    <div><h1>Team Attribution</h1><div class="h1sub">Carbon footprint by team and agent — the workforce view</div></div>
+  </div>
+
+  <div class="panel" style="margin-bottom:14px">
+    <div class="ph"><div class="pt">EMISSIONS BY TEAM <span class="hint">· 7 of 34 teams · highest footprint</span></div></div>
+    <table>
+      <thead><tr><th>TEAM</th><th>PRIMARY AGENT</th><th class="r">TOKENS</th><th class="r">CO₂e</th><th class="r">PER HEAD</th><th class="r">vs TARGET</th><th style="text-align:center">STATUS</th></tr></thead>
+      <tbody>
+        <tr><td>Engineering</td><td style="color:var(--t2)">code-review-bot</td><td class="r">7.9B</td><td class="r" style="font-weight:600">7,140 kg</td><td class="r">4.2 kg</td><td class="r" style="color:#E9736A">+162%</td><td style="text-align:center"><span class="pill bad">HOTSPOT</span></td></tr>
+        <tr><td>Data Science</td><td style="color:var(--t2)">doc-synthesis-v2</td><td class="r">2.1B</td><td class="r" style="font-weight:600">5,890 kg</td><td class="r">9.8 kg</td><td class="r" style="color:#E9736A">+512%</td><td style="text-align:center"><span class="pill bad">HOTSPOT</span></td></tr>
+        <tr><td>Customer Success</td><td style="color:var(--t2)">support-triage-v3</td><td class="r">5.4B</td><td class="r" style="font-weight:600">2,310 kg</td><td class="r">1.4 kg</td><td class="r" style="color:var(--amber)">+12%</td><td style="text-align:center"><span class="pill warn">Watch</span></td></tr>
+        <tr><td>Product</td><td style="color:var(--t2)">feedback-clusterer</td><td class="r">2.8B</td><td class="r" style="font-weight:600">1,680 kg</td><td class="r">1.5 kg</td><td class="r" style="color:var(--amber)">+18%</td><td style="text-align:center"><span class="pill warn">Watch</span></td></tr>
+        <tr><td>HR Automation</td><td style="color:var(--t2)">hr-policy-assistant</td><td class="r">1.9B</td><td class="r" style="font-weight:600">1,120 kg</td><td class="r">1.1 kg</td><td class="r" style="color:var(--green2)">−9%</td><td style="text-align:center"><span class="pill ok">On track</span></td></tr>
+        <tr><td>Sales</td><td style="color:var(--t2)">outreach-drafter</td><td class="r">2.4B</td><td class="r" style="font-weight:600">940 kg</td><td class="r">0.8 kg</td><td class="r" style="color:var(--green2)">−31%</td><td style="text-align:center"><span class="pill ok">On track</span></td></tr>
+        <tr><td>Finance</td><td style="color:var(--t2)">reconciliation-v2</td><td class="r">1.5B</td><td class="r" style="font-weight:600">390 kg</td><td class="r">0.5 kg</td><td class="r" style="color:var(--green2)">−58%</td><td style="text-align:center"><span class="pill ok">On track</span></td></tr>
+      </tbody>
+    </table>
+    <div class="ins r"><b>Data Science emits 9.8 kg per head — 6× the company average — on only 2.1B tokens.</b> Their doc-synthesis agent defaults to o3-reasoning for every task, including simple extraction. A routing rule would cut their footprint by an estimated 71% with no loss of output quality.</div>
+  </div>
+
+  <div class="panel">
+    <div class="ph"><div class="pt">WHY THIS IS A WORKFORCE METRIC <span class="hint">· not an infrastructure one</span></div></div>
+    <div class="dg">
+      <div class="dc"><div class="dl">SAME TOKENS, DIFFERENT CARBON</div><div class="dv">6× spread <small>between teams, per head</small></div></div>
+      <div class="dc"><div class="dl">DRIVEN BY</div><div class="dv">Model choice <small>+ prompt design + retrieval config</small></div></div>
+      <div class="dc"><div class="dl">CONTROLLED BY</div><div class="dv">Defaults & policy <small>set at the workplace layer</small></div></div>
+      <div class="dc"><div class="dl">INFRASTRUCTURE CHANGE NEEDED</div><div class="dv" style="color:var(--green2)">None <small>same providers, same models available</small></div></div>
+    </div>
+    <div class="ins g">Every driver of AI carbon is a <b>behavioural or configuration choice</b> — which model an agent defaults to, how much context it retrieves, whether repeat queries are cached. These are the same levers that govern cost, and they sit with the team that manages the digital workplace.</div>
+  </div>
+</div></div>
+
+<!-- ═══════════ ALERTS ═══════════ -->
+<div class="pg" id="alerts"><div class="wrap">
+  <div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:14px">
+    <div class="back" onclick="go('dash')">← Back</div>
+    <div><h1>Carbon Alerts</h1><div class="h1sub">2 active · 3 resolved this month</div></div>
+  </div>
+
+  <div class="panel" style="margin-bottom:12px;border-color:rgba(208,69,59,.4)">
+    <div class="ph"><div class="pt" style="color:#E9736A">⚠ HOTSPOT · JUN 3, 09:14</div><span class="pill bad">Active</span></div>
+    <div style="font-size:14px;font-weight:600;margin-bottom:6px">Reasoning-model batch job exceeded daily carbon budget</div>
+    <div style="font-size:12px;color:var(--t2);line-height:1.6">The <b style="color:var(--t1)">doc-synthesis-v2</b> agent (Data Science) processed 340 documents using <b style="color:var(--t1)">o3-reasoning</b>, emitting <b style="color:var(--t1)">412 kgCO₂e</b> in 6 hours — 2.1× the org's daily average. Equivalent to 2,410 km driven.</div>
+    <div class="ins a"><b>Recommended action:</b> route extraction and summarisation tasks to gemini-2.5-pro (Measured confidence, 0.6× energy). Estimated reduction: <b>294 kgCO₂e</b> per equivalent batch, with no measurable quality delta on this task class.</div>
+  </div>
+
+  <div class="panel" style="margin-bottom:12px;border-color:rgba(217,138,43,.4)">
+    <div class="ph"><div class="pt" style="color:var(--amber)">⚠ TREND · JUN 6</div><span class="pill warn">Active</span></div>
+    <div style="font-size:14px;font-weight:600;margin-bottom:6px">Engineering on track to exceed Q2 carbon allocation</div>
+    <div style="font-size:12px;color:var(--t2);line-height:1.6">At current run-rate, Engineering will reach <b style="color:var(--t1)">21.4 tCO₂e</b> against a quarterly allocation of <b style="color:var(--t1)">18.0 tCO₂e</b>. Primary driver: 62% cache-miss rate on repeated code-review prompts.</div>
+    <div class="ins g"><b>Recommended action:</b> enable semantic caching on code-review-bot. Projected saving: <b>2,140 kgCO₂e</b>/quarter — brings the team within allocation.</div>
+  </div>
+
+  <div class="panel">
+    <div class="ph"><div class="pt">RESOLVED THIS MONTH</div></div>
+    <table>
+      <tbody>
+        <tr><td style="color:var(--t2)">May 28</td><td>Prompt bloat on support-triage-v3 — context trimmed 44%</td><td class="r" style="color:var(--green2);font-weight:600">−680 kg</td></tr>
+        <tr><td style="color:var(--t2)">May 21</td><td>HR agent routed from opus to sonnet for FAQ class</td><td class="r" style="color:var(--green2);font-weight:600">−410 kg</td></tr>
+        <tr><td style="color:var(--t2)">May 14</td><td>Nightly batch shifted to low-carbon window (02:00–05:00)</td><td class="r" style="color:var(--green2);font-weight:600">−225 kg</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div></div>
+
+<!-- ═══════════ LEVERS ═══════════ -->
+<div class="pg" id="levers"><div class="wrap">
+  <div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:14px">
+    <div class="back" onclick="go('dash')">← Back</div>
+    <div><h1>Reduction Levers</h1><div class="h1sub">16.6 tCO₂e reducible — 85% of current footprint, no model change required</div></div>
+  </div>
+
+  <div class="lev" style="margin-bottom:14px">
+    <div class="lc">
+      <div class="lh"><div class="li">🌍</div><div class="lt">Clean-grid routing</div></div>
+      <div class="lv">−8.2 t</div>
+      <div class="ld">Route inference to low-carbon regions (Sweden 41 g/kWh vs Virginia 379 g/kWh). Largest single lever. No model, prompt, or UX change.</div>
+    </div>
+    <div class="lc">
+      <div class="lh"><div class="li">⇄</div><div class="lt">Model right-sizing</div></div>
+      <div class="lv">−6.0 t</div>
+      <div class="ld">Route extraction, summarisation and FAQ tasks away from reasoning models. o3-reasoning is 8.4× gpt-4o per token.</div>
+    </div>
+    <div class="lc">
+      <div class="lh"><div class="li">⊟</div><div class="lt">Semantic caching</div></div>
+      <div class="lv">−2.3 t</div>
+      <div class="ld">42% of queries are semantic repeats. A cache hit consumes zero inference energy — the only lever with a true zero-carbon outcome.</div>
+    </div>
+  </div>
+
+  <div class="grid2b">
+    <div class="panel">
+      <div class="ph"><div class="pt">SECONDARY LEVERS</div></div>
+      <table>
+        <tbody>
+          <tr><td>Prompt / context compression</td><td style="color:var(--t2);font-size:11.5px">38% avg input reduction</td><td class="r" style="color:var(--green2);font-weight:600">−1.4 t</td></tr>
+          <tr><td>Carbon-aware batch scheduling</td><td style="color:var(--t2);font-size:11.5px">shift to low-intensity hours</td><td class="r" style="color:var(--green2);font-weight:600">−0.9 t</td></tr>
+          <tr><td>RAG retrieval tuning (top-k)</td><td style="color:var(--t2);font-size:11.5px">cut over-retrieval</td><td class="r" style="color:var(--green2);font-weight:600">−0.7 t</td></tr>
+          <tr><td>Self-hosted small models</td><td style="color:var(--t2);font-size:11.5px">llama-3.3 for classification</td><td class="r" style="color:var(--green2);font-weight:600">−0.4 t</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="panel">
+      <div class="ph"><div class="pt">COST & CARBON MOVE TOGETHER</div></div>
+      <div class="dg">
+        <div class="dc"><div class="dl">CARBON REDUCTION</div><div class="dv" style="color:var(--green2)">−85% <small>16.6 tCO₂e/mo</small></div></div>
+        <div class="dc"><div class="dl">COST REDUCTION</div><div class="dv" style="color:var(--green2)">−58% <small>same levers</small></div></div>
+        <div class="dc"><div class="dl">QUALITY IMPACT</div><div class="dv">None measured <small>on target task classes</small></div></div>
+        <div class="dc"><div class="dl">INFRA CHANGE</div><div class="dv">None <small>gateway-layer policy only</small></div></div>
+      </div>
+      <div class="ins g"><b>The levers are the same.</b> Model right-sizing, caching, and context trimming cut cost and carbon simultaneously. GreenOps is not a second programme — it is the same telemetry, reported to a second stakeholder.</div>
+    </div>
+  </div>
+</div></div>
+
+<!-- ═══════════ DISCLOSURE ═══════════ -->
+<div class="pg" id="disclosure"><div class="wrap">
+  <div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:14px">
+    <div class="back" onclick="go('dash')">← Back</div>
+    <div><h1>Disclosure & Assurance</h1><div class="h1sub">Audit-ready exports for CSRD / ESRS E1, GHG Protocol, and AI governance questionnaires</div></div>
+  </div>
+
+  <div class="grid2b" style="margin-bottom:14px">
+    <div class="panel">
+      <div class="ph"><div class="pt">GHG PROTOCOL MAPPING</div></div>
+      <table>
+        <tbody>
+          <tr><td><b>Scope 2</b> <span style="color:var(--t3);font-size:11px">— location-based</span></td><td style="color:var(--t2);font-size:11.5px">Self-hosted inference (on-prem GPU)</td><td class="r" style="font-weight:600">0.48 t</td></tr>
+          <tr><td><b>Scope 2</b> <span style="color:var(--t3);font-size:11px">— market-based</span></td><td style="color:var(--t2);font-size:11.5px">Net of renewable energy certificates</td><td class="r" style="font-weight:600">0.19 t</td></tr>
+          <tr><td><b>Scope 3</b> <span style="color:var(--t3);font-size:11px">— Cat. 1</span></td><td style="color:var(--t2);font-size:11.5px">Purchased API inference (OpenAI, Anthropic, Google)</td><td class="r" style="font-weight:600">18.99 t</td></tr>
+          <tr><td><b>Scope 3</b> <span style="color:var(--t3);font-size:11px">— embodied</span></td><td style="color:var(--t2);font-size:11.5px">Amortised GPU manufacturing (≈30% uplift)</td><td class="r" style="color:var(--t3);font-weight:600">5.84 t <span class="tag e">Est</span></td></tr>
+        </tbody>
+      </table>
+      <div class="ins a"><b>97% of AI emissions sit in Scope 3</b> — purchased inference from providers who publish no per-query energy data. This is the disclosure gap regulators are now closing.</div>
+    </div>
+
+    <div class="panel">
+      <div class="ph"><div class="pt">REGULATORY READINESS</div></div>
+      <table>
+        <tbody>
+          <tr><td>EU CSRD / ESRS E1</td><td style="color:var(--t2);font-size:11.5px">Climate change disclosure</td><td class="r"><span class="pill ok">Ready</span></td></tr>
+          <tr><td>EU AI Act — Art. 40</td><td style="color:var(--t2);font-size:11.5px">Energy efficiency reporting</td><td class="r"><span class="pill ok">Ready</span></td></tr>
+          <tr><td>California SB 253</td><td style="color:var(--t2);font-size:11.5px">Scope 1–3 disclosure</td><td class="r"><span class="pill warn">Partial</span></td></tr>
+          <tr><td>UK SRS / FCA CP26-5</td><td style="color:var(--t2);font-size:11.5px">Climate standard, from Jan 2027</td><td class="r"><span class="pill ok">Ready</span></td></tr>
+          <tr><td>ISO 14064-1</td><td style="color:var(--t2);font-size:11.5px">Verification-ready inventory</td><td class="r"><span class="pill warn">Partial</span></td></tr>
+        </tbody>
+      </table>
+      <div class="ins g">Exports carry per-row methodology, source, and confidence label — designed to survive third-party assurance rather than to produce a single unverifiable number.</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="ph"><div class="pt">THE CREDIBILITY PROBLEM <span class="hint">· stated plainly</span></div></div>
+    <div style="font-size:12.5px;color:var(--t2);line-height:1.7">
+      Estimates for a single AI query range from <b style="color:var(--t1)">0.03 to 68 grams of CO₂e</b> across published sources — a spread wide enough to be meaningless without stating assumptions. OpenAI and Google have released average per-query energy figures, but neither discloses the methodology behind them; Anthropic has published no Scope 1, 2 or 3 emissions in any public filing as of March 2026.
+      <br><br>
+      This dashboard does not resolve that uncertainty — <b style="color:var(--t1)">it makes it visible</b>. Every figure is labelled <span class="tag m">Measured</span> <span class="tag b">Benchmarked</span> or <span class="tag e">Estimated</span>, with its source and coefficient traceable. A reviewer can disagree with an assumption and recompute, rather than accepting or rejecting a black-box total.
+    </div>
+    <div class="ins a"><b>Why this matters commercially:</b> as procurement questionnaires and Fortune 500 RFPs add mandatory sustainability scoring, "we cannot measure our AI footprint" becomes a lost-deal risk. A defensible, labelled estimate outperforms silence.</div>
+
+    <div class="method">
+      <b>Primary sources.</b> Jegham et al., <i>How Hungry is AI? Benchmarking Energy, Water and Carbon Footprint of LLM Inference</i> (arXiv:2505.09598) · Epoch AI, <i>How much energy does ChatGPT use?</i> · EcoLogits (operational + embodied estimation, OpenAI/Anthropic/Mistral APIs) · CodeCarbon (MILA / BCG GAMMA / Haverford — local & training workloads) · carbon-llm (per-inference metering; Measured/Benchmarked/Estimated confidence pattern) · EPA eGRID2023 (grid intensity) · IEA <i>Energy and AI</i> (datacentre demand: 415 TWh in 2024 → 945 TWh projected 2030) · Software Carbon Intensity spec, ISO/IEC 21031:2024 · Thomson Reuters Institute (97% of companies do not assess AI environmental impact at deployment).
+    </div>
+  </div>
+</div></div>
+
+</div>
+
+<script>
+const CRUMB={dash:'Dashboard',models:'Dashboard › <b>Model Footprint</b>',teams:'Dashboard › <b>Team Attribution</b>',
+alerts:'Dashboard › <b>Carbon Alerts</b>',levers:'Dashboard › <b>Reduction Levers</b>',disclosure:'Dashboard › <b>Disclosure</b>'};
+function go(p){
+  document.querySelectorAll('.pg').forEach(x=>x.classList.toggle('on',x.id===p));
+  document.querySelectorAll('.nav').forEach(n=>n.classList.remove('on'));
+  const map={dash:0,models:1,teams:2,alerts:3,levers:4,disclosure:5};
+  document.querySelectorAll('.nav')[map[p]].classList.add('on');
+  document.getElementById('crumb').innerHTML = p==='dash'?'<b>Dashboard</b>':CRUMB[p];
+  document.querySelector('.main').scrollTop=0;
+}
+
+/* ---- daily carbon bars: avg ~650 kg/day, Jun 3 spike = 1,370 ---- */
+const daily=[588,612,571,634,659,602,548,671,690,644,618,583,556,701,688,662,635,609,674,1370,712,668,641,690,724,703,681,655,712,748];
+(function(){
+  const mx=Math.max(...daily), avg=daily.reduce((a,b)=>a+b,0)/daily.length;
+  document.getElementById('bars').innerHTML=daily.map((v,i)=>{
+    const h=Math.max(4,Math.round(v/mx*90));
+    const c = v>avg*1.6 ? '#D0453B' : v>avg*1.08 ? '#D98A2B' : '#2E9E6B';
+    return `<div class="bc" style="height:${h}px;background:${c}" title="${v} kgCO₂e"></div>`;
+  }).join('');
+})();
+
+/* ---- model list + table ---- */
+const MODELS=[
+ {n:'gpt-4o',      p:'OpenAI',   tok:9800, wh:1900,  co2:6554, conf:'b', col:'#2E7FB8'},
+ {n:'o3-reasoning',p:'OpenAI',   tok:1150, wh:16000, co2:6477, conf:'e', col:'#D0453B'},
+ {n:'claude-opus-4',p:'Anthropic',tok:4200, wh:2400,  co2:3548, conf:'e', col:'#D98A2B'},
+ {n:'gemini-2.5-pro',p:'Google', tok:3400, wh:1150,  co2:1376, conf:'m', col:'#25998C'},
+ {n:'gpt-4o-mini', p:'OpenAI',   tok:3900, wh:760,   co2:1043, conf:'b', col:'#3FBF85'},
+ {n:'llama-3.3-70b',p:'Self-hosted',tok:1550,wh:870, co2:475,  conf:'m', col:'#2E9E6B'},
+];
+const TOT=MODELS.reduce((s,m)=>s+m.co2,0), TOKTOT=MODELS.reduce((s,m)=>s+m.tok,0);
+const CONF={m:['tag m','Measured'],b:['tag b','Benchmarked'],e:['tag e','Estimated']};
+
+document.getElementById('mlist').innerHTML=MODELS.map(m=>{
+  const pct=(m.co2/TOT*100);
+  return `<div class="mrow" onclick="go('models')">
+    <div style="flex:1">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span class="dot" style="background:${m.col}"></span>
+        <span class="mname">${m.n}</span>
+        <span class="mtok">${(m.tok/1000).toFixed(1)}B tok</span>
+        <span class="mval">${m.co2.toLocaleString()} kg</span>
+        <span class="mpct">${pct.toFixed(1)}%</span>
+      </div>
+      <div class="mbar"><i style="width:${pct}%;background:${m.col}"></i></div>
+    </div></div>`;
+}).join('');
+
+document.getElementById('mtable').innerHTML=MODELS.map(m=>{
+  const intensity=Math.round(m.co2/(m.tok/1000));
+  const [cls,lab]=CONF[m.conf];
+  return `<tr>
+    <td><span class="dot" style="background:${m.col};display:inline-block;margin-right:7px"></span>${m.n}</td>
+    <td style="color:var(--t2)">${m.p}</td>
+    <td class="r">${(m.tok/1000).toFixed(2)}B</td>
+    <td class="r">${(m.tok*m.wh/1e6).toFixed(2)} MWh</td>
+    <td class="r" style="font-weight:600">${m.co2.toLocaleString()} kg</td>
+    <td class="r">${(m.co2/TOT*100).toFixed(1)}%</td>
+    <td class="r" style="font-weight:600;color:${intensity>4000?'#E9736A':intensity>1500?'var(--amber)':'var(--green2)'}">${intensity.toLocaleString()}</td>
+    <td style="text-align:center"><span class="${cls}">${lab}</span></td></tr>`;
+}).join('');
+
+/* ---- tokens vs emissions comparison ---- */
+document.getElementById('cmp').innerHTML=MODELS.map(m=>{
+  const tp=m.tok/TOKTOT*100, cp=m.co2/TOT*100;
+  return `<div style="margin-bottom:11px">
+    <div style="display:flex;justify-content:space-between;font-size:11.5px;margin-bottom:4px">
+      <span>${m.n}</span>
+      <span style="color:var(--t3)">${tp.toFixed(1)}% tok → <b style="color:${cp>tp*1.5?'#E9736A':cp<tp*0.6?'var(--green2)':'var(--t2)'}">${cp.toFixed(1)}% CO₂e</b></span>
+    </div>
+    <div style="display:flex;gap:3px;height:6px">
+      <div style="flex:${tp};background:var(--br);border-radius:2px" title="token share"></div>
+      <div style="flex:${100-tp};background:transparent"></div>
+    </div>
+    <div style="display:flex;gap:3px;height:6px;margin-top:2px">
+      <div style="flex:${cp};background:${m.col};border-radius:2px" title="carbon share"></div>
+      <div style="flex:${100-cp};background:transparent"></div>
+    </div>
+  </div>`;
+}).join('');
+</script>
+</body>
+</html>
